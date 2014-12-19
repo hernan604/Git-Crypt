@@ -13,6 +13,7 @@ WriteMakefile(
                         'Moo'           => 0,
                         'IO::All'       => 0,
                         'Crypt::CBC'    => 0,
+                        'Crypt::Blowfish'   => 0,
                         'MIME::Base64'  => 0,
                         'Digest::SHA1'  => 0,
                     },
