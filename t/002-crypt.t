@@ -24,7 +24,7 @@ my $gitcrypt = Git::Crypt->new(
     )
 );
 
-$gitcrypt->crypt;
+$gitcrypt->encrypt;
 $gitcrypt->decrypt;
 
 for ( keys %$files ) {

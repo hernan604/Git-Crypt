@@ -20,7 +20,7 @@ my $gitcrypt = Git::Crypt->new(
     salt        => pack("H16", "very very very very loooong salt")
 );
 
-$gitcrypt->crypt;
+$gitcrypt->encrypt;
 $gitcrypt->decrypt;
 
 for ( keys %$files ) {

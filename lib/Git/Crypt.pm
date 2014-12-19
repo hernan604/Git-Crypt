@@ -22,7 +22,7 @@ has cipher      => (
     }
 );
 
-sub crypt {
+sub encrypt {
     my $self = shift;
     for ( @{ $self->files } ) {
         my @lines_crypted =

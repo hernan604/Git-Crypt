@@ -8,6 +8,7 @@ WriteMakefile(
     VERSION_FROM => 'lib/Git/Crypt.pm', # finds \$VERSION
     AUTHOR       => 'Hernan Lopes (hernanlopes@gmail.com)',
     ABSTRACT     => 'Encrypt/decrypt sensitive files before commit and save on public repos',
+    EXE_FILES    => [ "bin/gitcrypt" ],
     PREREQ_PM    => {
                         'Test::Simple'  => 0.44,
                         'Moo'           => 0,
@@ -16,5 +17,6 @@ WriteMakefile(
                         'Crypt::Blowfish'   => 0,
                         'MIME::Base64'  => 0,
                         'Digest::SHA1'  => 0,
+                        'JSON::XS'      => 0,
                     },
 );
