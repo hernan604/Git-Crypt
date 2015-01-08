@@ -52,7 +52,7 @@ use JSON::XS;
 #   $ gitcrypt decrypt
 #   files decrypted
 
-my $config_file = '.gitcrypt';
+my $config_file = $ENV{GITCRYPT_CONFIG_FILE} || '.gitcrypt';
 
 my $config =
 ( -e $config_file )
