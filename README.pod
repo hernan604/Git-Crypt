@@ -28,6 +28,7 @@ Git::Crypt - Encrypt/decrypt sensitive files saved on public repos
 
   #gitcrypt->add([qw| file1 file2 |]);
   #gitcrypt->del([qw| file1 file2 |]);
+  #gitcrypt->list;
   #gitcrypt->key('some key');
   #gitcrypt->salt('some key');
   $gitcrypt->crypt;     #save files encrypted
@@ -53,6 +54,7 @@ Git::Crypt - Encrypt/decrypt sensitive files saved on public repos
 
   #gitcrypt->add([qw| file1 file2 |]);
   #gitcrypt->del([qw| file1 file2 |]);
+  #gitcrypt->list;
   #gitcrypt->key('some key');
   #gitcrypt->salt('some key');
   $gitcrypt->crypt;     #save files encrypted
@@ -94,11 +96,11 @@ Git::Crypt encrypts line by line to prevent too many unnecessary diffs between e
 
 =head1 AUTHOR
 
-    Hernan Lopes
-    CPAN ID: HERNAN
-    perldelux
-    hernanlopes@gmail.com
-    http://www.perldelux.com
+ Hernan Lopes
+ CPAN ID: HERNAN
+ perldelux
+ hernanlopes@gmail.com
+ http://www.perldelux.com
 
 =head1 COPYRIGHT
 
