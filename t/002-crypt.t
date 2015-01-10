@@ -4,19 +4,24 @@ use Crypt::CBC;
 use Digest::SHA1 qw|sha1_hex|;
 use IO::All;
 
-my $files = {
-    './t/file1' => undef,
-    './t/file2' => undef,
-};
+my $files = [
+    {
+        file => './t/file1',
+        is_encrypted => 0,
+    },
+    {
+        file => './t/file2',
+        is_encrypted => 0,
+    },
+];
 
-for ( keys %$files ) {
-    $files->{ $_ } = sha1_hex( io( $_ )->getlines );
+my $digest = {};
+for ( @{ $files } ) {
+    $digest->{ $_->{ file } } = sha1_hex( io( $_->{file} )->getlines );
 }
 
 my $gitcrypt = Git::Crypt->new(
-    files => [
-        keys %$files
-    ],
+    files => $files,
     cipher => Crypt::CBC->new(
         -key      => 'a very very very veeeeery very long key',
         -cipher   => 'Blowfish',
@@ -27,8 +32,8 @@ my $gitcrypt = Git::Crypt->new(
 $gitcrypt->encrypt;
 $gitcrypt->decrypt;
 
-for ( keys %$files ) {
-    ok( sha1_hex(io($_)->getlines) eq $files->{ $_ }, 'same digest as the original' );
+for ( keys %$digest ) {
+    ok( sha1_hex(io($_)->getlines) eq $digest->{ $_ }, 'same digest as the original' );
 }
 
 done_testing;

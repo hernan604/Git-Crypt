@@ -25,21 +25,64 @@ has cipher      => (
 sub encrypt {
     my $self = shift;
     for ( @{ $self->files } ) {
+        next if $_->{is_encrypted};
         my @lines_crypted =
-          map { encode_base64 $self->cipher->encrypt($_); } io($_)->getlines;
-        io($_)->print(@lines_crypted);
+          map { encode_base64 $self->cipher->encrypt($_); } io($_->{file})->getlines;
+        io($_->{file})->print(@lines_crypted);
+        $_->{is_encrypted} = 1;
     }
 }
 
 sub decrypt {
     my $self = shift;
     for ( @{ $self->files } ) {
+        next if ! $_->{is_encrypted};
         my @lines_decrypted = map {
             my $line = decode_base64 $_;
             $self->cipher->decrypt($line);
-        } io($_)->getlines;
-        io($_)->print(@lines_decrypted);
+        } io($_->{file})->getlines;
+        io($_->{file})->print(@lines_decrypted);
+        $_->{is_encrypted} = 0;
     }
+}
+
+sub add {
+    my $self = shift;
+    my $files = shift;
+    my @current_files = map { $_->{ file } } @{ $self->files };
+    map {
+        print $_, "\n";
+        my $file = $_;
+        push @{ $self->files }, {file => $file, is_encrypted => 0 }
+            if ! grep /^$file$/, @current_files;
+    } @{$files};
+}
+
+sub del {
+    my $self = shift;
+    my $files = shift;
+    map {
+        my $file_to_del = $_;
+        print $file_to_del, "\n";
+        my $i = 0;
+        for ( @{ $self->files } ) {
+            if ( $_->{ file } eq $file_to_del ) {
+                splice @{ $self->files }, $i, 1;
+                last;
+            }
+            $i++;
+        }
+    } @{$files};
+}
+
+sub config {
+    my $self = shift;
+    return {
+        files   => $self->files,
+        cipher_name  => $self->cipher_name,
+        key     => $self->key,
+        salt    => $self->salt,
+    };
 }
 
 our $VERSION = 0.01;

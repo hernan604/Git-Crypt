@@ -54,20 +54,33 @@ use JSON::XS;
 
 my $config_file = $ENV{GITCRYPT_CONFIG_FILE} || '.gitcrypt';
 
+#load config or start with new one
 my $config =
-( -e $config_file )
-    ? decode_json io($config_file)->slurp
-    : { files => [] };
+    ( -e $config_file )
+        ? decode_json io($config_file)->slurp
+        : { files => [] };
 
-   if (!@ARGV)                  { show_commands(); }
-elsif ( $ARGV[0] eq 'init' )    { init() } 
-elsif ( $ARGV[0] eq 'set' )     { set() } 
-elsif ( $ARGV[0] eq 'list' )    { list() }
-elsif ( $ARGV[0] eq 'add' )     { add() }
-elsif ( $ARGV[0] eq 'del' )     { del() } 
-elsif ( $ARGV[0] eq 'encrypt' ) { encrypt() } 
-elsif ( $ARGV[0] eq 'decrypt' ) { decrypt() } 
-elsif ( $ARGV[0] eq 'status' )  { status() }
+my $gitcrypt = Git::Crypt->new(
+    files       => $config->{ files },
+    key         => $config->{ key },
+    cipher_name => $config->{ cipher_name }||undef,
+    salt        => exists $config->{salt} ?pack( "H16", $config->{ salt } ) : undef,
+    key         => $config->{ key }||undef,
+    cipher_name => $config->{ cipher_name }||undef,
+    salt        => $config->{ salt }||undef,
+);
+
+#get current action
+my $action = $ARGV[0]||undef;
+   if (!@ARGV)               { show_commands(); }
+elsif ( $action eq 'init' )    { init() } 
+elsif ( $action eq 'set' )     { set() } 
+elsif ( $action eq 'list' )    { list() }
+elsif ( $action eq 'add' )     { add() }
+elsif ( $action eq 'del' )     { del() } 
+elsif ( $action eq 'encrypt' ) { encrypt() } 
+elsif ( $action eq 'decrypt' ) { decrypt() } 
+elsif ( $action eq 'status' )  { status() }
 else  { print "Command not avaliable\n"; }
 
 sub show_commands {
@@ -94,13 +107,11 @@ COMMANDS
 }
 
 sub status {
-    print "Current files status: " . ( ( $config->{ status } ) ? $config->{ status } : 'decrypted' );
-    print "\n\n";
-    print "cipher   $config->{cipher}"  if exists $config->{cipher};
+    print "cipher   $gitcrypt->cipher_name"  if defined $gitcrypt->cipher_name;
     print "\n";
-    print "key      $config->{key}"     if exists $config->{key};
+    print "key      $gitcrypt->key"     if defined $gitcrypt->key;
     print "\n";
-    print "salt     $config->{salt}"    if exists $config->{salt};
+    print "salt     $gitcrypt->salt"    if defined $gitcrypt->salt;
     print "\n\n";
     list();
 }
@@ -123,9 +134,9 @@ STEPS
 
 sub validate {
     return 1
-        if      exists $config->{ cipher }
-            and exists $config->{ salt }
-            and exists $config->{ key }
+        if      defined $gitcrypt->cipher_name
+            and defined $gitcrypt->salt
+            and defined $gitcrypt->key
             ;
     print <<HELP;
 You must set the cipher, salt and key. 
@@ -134,41 +145,18 @@ HELP
     return 0;
 }
 
-sub gitcrypt {
-    Git::Crypt->new(
-        files => $config->{ files },
-        cipher => Crypt::CBC->new(
-            -key      => $config->{ key },
-            -cipher   => $config->{ cipher },
-            -salt     => pack( "H16", $config->{ salt } )
-        )
-    );
-}
-
 sub encrypt {
     return if ! validate();
-    if ( !$config->{status} || $config->{status} eq 'decrypted' ) {
-        #encrypt and then
-        print "Encrypted.";
-        $config->{status} = 'encrypted';
-        save_config();
-        gitcrypt()->encrypt;
-    } else {
-        print "Your files are already encrypted";
-    }
+    $gitcrypt->encrypt;
+    save_config();
+    print "Encrypted.";
 }
 
 sub decrypt {
     return if ! validate();
-    if ( $config->{status} && $config->{status} eq 'encrypted' ) {
-        #decrypt and then
-        print "Decrypted.";
-        $config->{status} = 'decrypted';
-        save_config();
-        gitcrypt()->decrypt;
-    } else {
-        print "Your files are already decrypted";
-    }
+    $gitcrypt->decrypt;
+    save_config();
+    print "Decrypted.";
 }
 
 sub del {
@@ -179,19 +167,8 @@ ie: gitcrypt del file1 dir/file2
 HELP
     } else {
         shift @ARGV;
-        print "Deleting files:";
-        map {
-            my $file_to_del = $_;
-            print $file_to_del, "\n";
-            my $i = 0;
-            for ( @{ $config->{ files } } ) {
-                if ( $_ eq $file_to_del ) {
-                    splice @{ $config->{ files } }, $i, 1;
-                    last;
-                }
-                $i++;
-            }
-        } @ARGV;
+        print "Deleting files:\n";
+        $gitcrypt->del( \@ARGV );
         save_config();
     }
 }
@@ -205,12 +182,7 @@ HELP
     } else {
         shift @ARGV;
         print "Adding files: \n";
-        map {
-            print $_, "\n";
-            my $file = $_;
-            push @{ $config->{files} }, $file
-                if ! grep /^$file$/, @{ $config->{ files } };
-        } @ARGV;
+        $gitcrypt->add( \@ARGV );
         save_config();
     }
 }
@@ -222,8 +194,9 @@ sub list {
         return;
     }
     print "Files added:\n";
-    for ( @{ $config->{ files } } ) {
-        print $_ , "\n";
+    print "File         Status:\n";
+    for ( @{ $gitcrypt->files } ) {
+        print $_->{file} . "   " . $_->{is_encrypted} , "\n";
     }
 }
 
@@ -247,8 +220,8 @@ sub set_cipher {
     }
     shift @ARGV;    #set
     shift @ARGV;    #cipher
-    $config->{cipher} = join " ", @ARGV;
-    print "Set cipher to: $config->{cipher}","\n";
+    $gitcrypt->cipher_name( join " ", @ARGV );
+    print "Set cipher to: ",$gitcrypt->cipher_name,"\n";
     save_config();
 }
 
@@ -260,8 +233,8 @@ sub set_key {
     }
     shift @ARGV;    #set
     shift @ARGV;    #key
-    $config->{key} = join " ", @ARGV;
-    print "Set key to: $config->{key}","\n";
+    $gitcrypt->key(join " ", @ARGV);
+    print "Set key to: ",$gitcrypt->key,"\n";
     save_config();
 }
 
@@ -273,13 +246,13 @@ sub set_salt {
     }
     shift @ARGV;    #set
     shift @ARGV;    #salt
-    $config->{salt} = join " ", @ARGV;
-    print "Set salt to: $config->{salt}","\n";
+    $gitcrypt->salt( join " ", @ARGV );
+    print "Set salt to: ",$gitcrypt->salt,"\n";
     save_config();
 }
 
 sub save_config {
-    io( $config_file )->print( encode_json $config );
+    io( $config_file )->print( encode_json $gitcrypt->config );
 }
 
 

@@ -10,10 +10,14 @@ Git::Crypt - Encrypt/decrypt sensitive files saved on public repos
 
   my $gitcrypt = Git::Crypt->new(
       files => [
-          qw|
-            file1
-            file2
-            |
+          {
+              file => 'file1',
+              is_encrypted => 0,
+          },
+          {
+              file => 'file2',
+              is_encrypted => 0,
+          },
       ],
       cipher => Crypt::CBC->new(
           -key      => 'a very very very veeeeery very long key',
@@ -29,10 +33,14 @@ Git::Crypt - Encrypt/decrypt sensitive files saved on public repos
 
   my $gitcrypt = Git::Crypt->new(
       files => [
-          qw|
-            file1
-            file2
-            |
+          {
+              file => 'file1',
+              is_encrypted => 0,
+          },
+          {
+              file => 'file2',
+              is_encrypted => 0,
+          },
       ],
       key         => 'a very very very veeeeery very long key',
       cipher_name => 'Blowfish',
