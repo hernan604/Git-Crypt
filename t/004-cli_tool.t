@@ -15,7 +15,7 @@ $ENV{GITCRYPT_CONFIG_FILE} = $gitcrypt_config_file;
         'gitcrypt set key    some key',
         'gitcrypt set salt   some salt',
     ];
-    validate_expected_strings( $cmd, $expected, 'init tests' );
+    validate_expected_strings( 'ok', $cmd, $expected, 'init tests' );
 }
 
 {
@@ -24,7 +24,7 @@ $ENV{GITCRYPT_CONFIG_FILE} = $gitcrypt_config_file;
     my $expected = [
         'Set cipher to: Blowfish',
     ];
-    validate_expected_strings( $cmd, $expected, 'cipher tests' );
+    validate_expected_strings( 'ok', $cmd, $expected, 'cipher tests' );
 }
 
 {
@@ -33,7 +33,7 @@ $ENV{GITCRYPT_CONFIG_FILE} = $gitcrypt_config_file;
     my $expected = [
         'Set key to: some key',
     ];
-    validate_expected_strings( $cmd, $expected, 'key tests' );
+    validate_expected_strings( 'ok', $cmd, $expected, 'key tests' );
 }
 
 {
@@ -42,7 +42,7 @@ $ENV{GITCRYPT_CONFIG_FILE} = $gitcrypt_config_file;
     my $expected = [
         'Set salt to: some key',
     ];
-    validate_expected_strings( $cmd, $expected, 'salt tests' );
+    validate_expected_strings( 'ok', $cmd, $expected, 'salt tests' );
 }
 
 {
@@ -51,7 +51,7 @@ $ENV{GITCRYPT_CONFIG_FILE} = $gitcrypt_config_file;
     my $expected = [
         'No files added',
     ];
-    validate_expected_strings( $cmd, $expected, 'list tests' );
+    validate_expected_strings( 'ok', $cmd, $expected, 'list tests' );
 }
 
 {
@@ -77,7 +77,7 @@ LINES
         'file1-tests',
         'file2-tests',
     ];
-    validate_expected_strings( $cmd, $expected, 'add file tests' );
+    validate_expected_strings( 'ok', $cmd, $expected, 'add file tests' );
 }
 
 encrypt_tests();
@@ -97,7 +97,7 @@ LINES
         'Adding files:',
         'file3-tests',
     ];
-    validate_expected_strings( $cmd, $expected, 'add file tests 3rd file' );
+    validate_expected_strings( 'ok', $cmd, $expected, 'add file tests 3rd file' );
     encrypt();
 }
 
@@ -107,7 +107,7 @@ encrypt_tests();
 
 {
     #check 3rd file encrypted contents
-    validate_expected_strings( io('file3-tests')->slurp, [qw|
+    validate_expected_strings( 'ok', io('file3-tests')->slurp, [qw|
         U2FsdGVkX1/IbgTiAAAAAFSmbJjcNIQPNXdGv5fgIUXj/s3Lu7A6iGqjMyBwc54X
         U2FsdGVkX1/IbgTiAAAAAPXwTlqvbGrKGNqd5eVtThV3icUZwLwgRA==
         U2FsdGVkX1/IbgTiAAAAAF42mY3K384WCD9i9S74GuU=
@@ -120,16 +120,16 @@ encrypt_tests();
     my $expected = [
         'Decrypted',
     ];
-    validate_expected_strings( $cmd, $expected, 'decrypt tests 1' );
+    validate_expected_strings( 'ok', $cmd, $expected, 'decrypt tests 1' );
 
     #check decrypted file contents:
-    validate_expected_strings( io('file1-tests')->slurp, [
+    validate_expected_strings( 'ok', io('file1-tests')->slurp, [
         'a couple of lines to test',
         'some other line',
         'bla bla bla',
     ], 'decrypt tests 2');
 
-    validate_expected_strings( io('file2-tests')->slurp, [
+    validate_expected_strings( 'ok', io('file2-tests')->slurp, [
         'some lines',
         'another line',
         'third line',
@@ -145,7 +145,7 @@ encrypt_tests();
         'file1-tests',
         'file2-tests',
     ];
-    validate_expected_strings( $cmd, $expected, 'del file tests' );
+    validate_expected_strings( 'ok', $cmd, $expected, 'del file tests' );
 }
 
 
@@ -157,11 +157,12 @@ encrypt_tests();
 }
 
 sub validate_expected_strings {
+    my $test_action = shift;
     my $cmd      = shift;
     my $expected = shift;
     my $test_name=shift;
     for ( @$expected ) {
-        ok( $cmd =~ m#$_#g, $test_name );
+        $test_action->( $cmd =~ m#$_#g, $test_name );
     }
 }
 
@@ -171,12 +172,12 @@ sub encrypt_tests {
         encrypt();
 
         #check encrypted file contents:
-        validate_expected_strings( io('file1-tests')->slurp, [qw|
+        validate_expected_strings( 'ok', io('file1-tests')->slurp, [qw|
             U2FsdGVkX1/IbgTiAAAAAFSmbJjcNIQPNXdGv5fgIUXj/s3Lu7A6iGqjMyBwc54X
             U2FsdGVkX1/IbgTiAAAAAPXwTlqvbGrKGNqd5eVtThV3icUZwLwgRA==
             U2FsdGVkX1/IbgTiAAAAAF42mY3K384WCD9i9S74GuU=
         |], 'encrypt tests 1');
-        validate_expected_strings( io('file2-tests')->slurp, [qw|
+        validate_expected_strings( 'ok', io('file2-tests')->slurp, [qw|
             U2FsdGVkX1/IbgTiAAAAAIm66zCcFmSZzdi6DAFNJLc=
             U2FsdGVkX1/IbgTiAAAAAEEtpmhdKZlGUv5X/l9WByQ=
             U2FsdGVkX1/IbgTiAAAAABYKsXVjq0YHRQL8Yq/Wj5I=
@@ -192,7 +193,7 @@ sub encrypt {
     my $expected = [
         'Encrypted',
     ];
-    validate_expected_strings( $cmd, $expected );
+    validate_expected_strings( 'ok', $cmd, $expected );
 };
 
 done_testing;
