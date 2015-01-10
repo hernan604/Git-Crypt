@@ -26,6 +26,10 @@ Git::Crypt - Encrypt/decrypt sensitive files saved on public repos
       )
   );
 
+  #gitcrypt->add([qw| file1 file2 |]);
+  #gitcrypt->del([qw| file1 file2 |]);
+  #gitcrypt->key('some key');
+  #gitcrypt->salt('some key');
   $gitcrypt->crypt;     #save files encrypted
   $gitcrypt->decrypt;   #save files decrypted
 
@@ -47,8 +51,41 @@ Git::Crypt - Encrypt/decrypt sensitive files saved on public repos
       salt        => pack("H16", "very very very very loooong salt")
   );
 
+  #gitcrypt->add([qw| file1 file2 |]);
+  #gitcrypt->del([qw| file1 file2 |]);
+  #gitcrypt->key('some key');
+  #gitcrypt->salt('some key');
   $gitcrypt->crypt;     #save files encrypted
   $gitcrypt->decrypt;   #save files decrypted
+
+#Usage#3: Command line tool:
+    
+    #initialize gitcrypt and its config
+    gitcrypt init
+    
+    #set a gitcrypt cipher
+    gitcrypt set cipher Blowfish
+
+    #set a key
+    gitcrypt set key    some key
+
+    #set a salt
+    gitcrypt set salt   some key
+
+    #list files
+    gitcrypt list
+
+    #add files in gitcrypt
+    gitcrypt add file1-tests file2-tests
+
+    #del files in gitcrypt
+    gitcrypt del file1-tests file2-tests
+
+    #encrypt files that are not encrypted yet
+    gitcrypt encrypt
+
+    #decrypt files that are encrypted
+    gitcrypt decrypt
 
 =head1 DESCRIPTION
 
