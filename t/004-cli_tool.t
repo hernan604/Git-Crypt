@@ -80,25 +80,38 @@ LINES
     validate_expected_strings( $cmd, $expected, 'add file tests' );
 }
 
-{
-    #encrypt
-    my $cmd = `./bin/gitcrypt encrypt`;
-    my $expected = [
-        'Encrypted',
-    ];
-    validate_expected_strings( $cmd, $expected );
+encrypt_tests();
 
-    #check encrypted file contents:
-    validate_expected_strings( io('file1-tests')->slurp, [qw|
+{
+    #encrypt 3rd file
+
+    io("file3-tests")->print(<<LINES);
+a couple of lines to test
+some other line
+bla bla bla
+LINES
+
+    encrypt();
+    my $cmd = `./bin/gitcrypt add file3-tests`;
+    my $expected = [
+        'Adding files:',
+        'file3-tests',
+    ];
+    validate_expected_strings( $cmd, $expected, 'add file tests 3rd file' );
+    encrypt();
+}
+
+
+
+encrypt_tests();
+
+{
+    #check 3rd file encrypted contents
+    validate_expected_strings( io('file3-tests')->slurp, [qw|
         U2FsdGVkX1/IbgTiAAAAAFSmbJjcNIQPNXdGv5fgIUXj/s3Lu7A6iGqjMyBwc54X
         U2FsdGVkX1/IbgTiAAAAAPXwTlqvbGrKGNqd5eVtThV3icUZwLwgRA==
         U2FsdGVkX1/IbgTiAAAAAF42mY3K384WCD9i9S74GuU=
-    |], 'encrypt tests 1');
-    validate_expected_strings( io('file2-tests')->slurp, [qw|
-        U2FsdGVkX1/IbgTiAAAAAIm66zCcFmSZzdi6DAFNJLc=
-        U2FsdGVkX1/IbgTiAAAAAEEtpmhdKZlGUv5X/l9WByQ=
-        U2FsdGVkX1/IbgTiAAAAABYKsXVjq0YHRQL8Yq/Wj5I=
-    |], 'encrypt tests 2');
+    |], 'encrypt tests 3');
 }
 
 {
@@ -151,5 +164,35 @@ sub validate_expected_strings {
         ok( $cmd =~ m#$_#g, $test_name );
     }
 }
+
+sub encrypt_tests {
+    {
+        #encrypt
+        encrypt();
+
+        #check encrypted file contents:
+        validate_expected_strings( io('file1-tests')->slurp, [qw|
+            U2FsdGVkX1/IbgTiAAAAAFSmbJjcNIQPNXdGv5fgIUXj/s3Lu7A6iGqjMyBwc54X
+            U2FsdGVkX1/IbgTiAAAAAPXwTlqvbGrKGNqd5eVtThV3icUZwLwgRA==
+            U2FsdGVkX1/IbgTiAAAAAF42mY3K384WCD9i9S74GuU=
+        |], 'encrypt tests 1');
+        validate_expected_strings( io('file2-tests')->slurp, [qw|
+            U2FsdGVkX1/IbgTiAAAAAIm66zCcFmSZzdi6DAFNJLc=
+            U2FsdGVkX1/IbgTiAAAAAEEtpmhdKZlGUv5X/l9WByQ=
+            U2FsdGVkX1/IbgTiAAAAABYKsXVjq0YHRQL8Yq/Wj5I=
+        |], 'encrypt tests 2');
+
+        #now there are 2 files encrypted, let me add a 3rd file which is not encrypted
+
+    }
+}
+
+sub encrypt {
+    my $cmd = `./bin/gitcrypt encrypt`;
+    my $expected = [
+        'Encrypted',
+    ];
+    validate_expected_strings( $cmd, $expected );
+};
 
 done_testing;
