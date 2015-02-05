@@ -101,6 +101,10 @@ Configuration options:
     gitcrypt set key    some key
     gitcrypt set salt   some salt
 
+Key and salt changes:
+    gitcrypt set key    some key
+    gitcrypt set salt   some salt
+
 Managing files:
     gitcrypt list
     gitcrypt add some/file1 other/file
