@@ -254,8 +254,39 @@ sub set_cipher {
         and return 
             if $gitcrypt->cipher_name and $gitcrypt->cipher_name ne '';
     $gitcrypt->cipher_name( $cipher );
-    print "Set cipher to: '",$gitcrypt->cipher_name,"'\n";
+    print "Set cipher to: '",$gitcrypt->cipher_name,"\n";
     save_config();
+}
+
+sub reload_gitcrypt {
+    $gitcrypt = new_gitcrypt( get_config() );
+}
+
+sub change_salt {
+    if ( ! $ARGV[2] ) {
+        print "You did not pass a salt\n";
+        return
+    }
+    my @files = @{$gitcrypt->files};
+    my @encrypted_files = map { $_->{ is_encrypted } ? $_ : () } @files; 
+    if ( decrypt() ) {
+        print "Files decrypted. Will change salt.\n";
+        save_salt( capture_cli_args( 'change salt' ) );
+        for ( @encrypted_files ) {
+            $gitcrypt->encrypt( $_->{file} );
+        }
+    } else {
+        print "Salt not changed.\n";
+    }
+    save_config();
+}
+
+sub save_salt {
+    my $salt = shift;
+    $gitcrypt->salt( $salt );
+    print "Set salt to: '",$gitcrypt->salt,"\n";
+    save_config();
+    reload_gitcrypt();
 }
 
 sub change_key {
@@ -283,9 +314,9 @@ sub change_key {
 sub save_key {
     my $key = shift;
     $gitcrypt->key( $key );
-    print "Set key to: '",$gitcrypt->key,"'\n";
+    print "Set key to: '",$gitcrypt->key,"\n";
     save_config();
-    $gitcrypt = new_gitcrypt( get_config() );
+    reload_gitcrypt();
 }
 
 sub set_key {
@@ -316,7 +347,7 @@ sub set_salt {
         and return
             if defined $gitcrypt->salt and $gitcrypt->salt ne '';
     $gitcrypt->salt( $salt );
-    print "Set salt to: '",$gitcrypt->salt,"'\n";
+    print "Set salt to: '",$gitcrypt->salt,"\n";
     save_config();
 }
 
