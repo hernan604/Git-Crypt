@@ -55,26 +55,34 @@ use JSON::XS;
 my $config_file = $ENV{GITCRYPT_CONFIG_FILE} || '.gitcrypt';
 
 #load config or start with new one
-my $config =
+sub get_config {
     ( -e $config_file )
         ? decode_json io($config_file)->slurp
         : { files => [] };
+}
+my $config = get_config();
 
-my $gitcrypt = Git::Crypt->new(
-    files       => $config->{ files },
-    key         => $config->{ key },
-    cipher_name => $config->{ cipher_name }||undef,
-    salt        => exists $config->{salt} ?pack( "H16", $config->{ salt } ) : undef,
-    key         => $config->{ key }||undef,
-    cipher_name => $config->{ cipher_name }||undef,
-    salt        => $config->{ salt }||undef,
-);
+sub new_gitcrypt {
+    my $config = shift;
+    Git::Crypt->new(
+        files       => $config->{ files },
+        key         => $config->{ key },
+        cipher_name => $config->{ cipher_name }||undef,
+        salt        => exists $config->{salt} ?pack( "H16", $config->{ salt } ) : undef,
+        key         => $config->{ key }||undef,
+        cipher_name => $config->{ cipher_name }||undef,
+        salt        => $config->{ salt }||undef,
+    );
+}
+my $gitcrypt = new_gitcrypt( get_config() );
+
 
 #get current action
 my $action = $ARGV[0]||undef;
    if (!@ARGV)               { show_commands(); }
 elsif ( $action eq 'init' )    { init() } 
 elsif ( $action eq 'set' )     { set() } 
+elsif ( $action eq 'change' )     { change() } 
 elsif ( $action eq 'list' )    { list() }
 elsif ( $action eq 'add' )     { add() }
 elsif ( $action eq 'del' )     { del() } 
@@ -107,11 +115,11 @@ COMMANDS
 }
 
 sub status {
-    print "cipher   $gitcrypt->cipher_name"  if defined $gitcrypt->cipher_name;
+    print "cipher   ".$gitcrypt->cipher_name  if defined $gitcrypt->cipher_name;
     print "\n";
-    print "key      $gitcrypt->key"     if defined $gitcrypt->key;
+    print "key      ".$gitcrypt->key     if defined $gitcrypt->key;
     print "\n";
-    print "salt     $gitcrypt->salt"    if defined $gitcrypt->salt;
+    print "salt     ".$gitcrypt->salt    if defined $gitcrypt->salt;
     print "\n\n";
     list();
 }
@@ -146,17 +154,19 @@ HELP
 }
 
 sub encrypt {
-    return if ! validate();
+    return 0 if ! validate();
     $gitcrypt->encrypt;
     save_config();
     print "Encrypted.";
+    return 1;
 }
 
 sub decrypt {
-    return if ! validate();
+    return 0 if ! validate();
     $gitcrypt->decrypt;
     save_config();
     print "Decrypted.";
+    return 1;
 }
 
 sub del {
@@ -212,6 +222,25 @@ sub set {
     }
 }
 
+sub change {
+    if ( $ARGV[1] eq 'key' ) {
+        change_key();
+    } elsif ( $ARGV[1] eq 'salt' ) {
+        change_salt();
+    } else {
+        print "incorrect option $ARGV[1]\n";
+    }
+}
+
+sub capture_cli_args {
+    my $discard_string = shift;
+    my $cliargs = `ps -o args $$` ;
+    $cliargs =~ s|^COMMAND\n||gm;
+    $cliargs =~ s|^.+$discard_string( +)||gm;
+    $cliargs =~ s|\n$||;
+    $cliargs;
+}
+
 sub set_cipher {
     #set cipher
     if ( ! $ARGV[2] ) { 
@@ -220,9 +249,43 @@ sub set_cipher {
     }
     shift @ARGV;    #set
     shift @ARGV;    #cipher
-    $gitcrypt->cipher_name( join " ", @ARGV );
-    print "Set cipher to: ",$gitcrypt->cipher_name,"\n";
+    my $cipher = capture_cli_args( 'set cipher' );
+    print "You cannot change the cipher. Its already set to: ",$gitcrypt->cipher_name,"\n" 
+        and return 
+            if $gitcrypt->cipher_name and $gitcrypt->cipher_name ne '';
+    $gitcrypt->cipher_name( $cipher );
+    print "Set cipher to: '",$gitcrypt->cipher_name,"'\n";
     save_config();
+}
+
+sub change_key {
+    #decrypt encrypted files
+    #change encryption key
+    #encrypt files that were encrypted previously
+    if ( ! $ARGV[2] ) {
+        print "You did not pass a key\n";
+        return
+    }
+    my @files = @{$gitcrypt->files};
+    my @encrypted_files = map { $_->{ is_encrypted } ? $_ : () } @files; 
+    if ( decrypt() ) {
+        print "Files decrypted. Will change key.\n";
+        save_key( capture_cli_args( 'change key' ) );
+        for ( @encrypted_files ) {
+            $gitcrypt->encrypt( $_->{file} );
+        }
+    } else {
+        print "Key not changed.\n";
+    }
+    save_config();
+}
+
+sub save_key {
+    my $key = shift;
+    $gitcrypt->key( $key );
+    print "Set key to: '",$gitcrypt->key,"'\n";
+    save_config();
+    $gitcrypt = new_gitcrypt( get_config() );
 }
 
 sub set_key {
@@ -233,9 +296,11 @@ sub set_key {
     }
     shift @ARGV;    #set
     shift @ARGV;    #key
-    $gitcrypt->key(join " ", @ARGV);
-    print "Set key to: ",$gitcrypt->key,"\n";
-    save_config();
+    warn "Cannot set new key. Key has already been set. Use change key <newkey> to change."
+        and return
+            if defined $gitcrypt->key and $gitcrypt->key ne '';
+#   $gitcrypt->key(join " ", @ARGV);
+    save_key( capture_cli_args( 'set key' ) );
 }
 
 sub set_salt {
@@ -246,8 +311,12 @@ sub set_salt {
     }
     shift @ARGV;    #set
     shift @ARGV;    #salt
-    $gitcrypt->salt( join " ", @ARGV );
-    print "Set salt to: ",$gitcrypt->salt,"\n";
+    my $salt = capture_cli_args( 'set salt' );
+    print "Cannot set new salt. Salt has already been set. Use change salt <newsalt> to change."
+        and return
+            if defined $gitcrypt->salt and $gitcrypt->salt ne '';
+    $gitcrypt->salt( $salt );
+    print "Set salt to: '",$gitcrypt->salt,"'\n";
     save_config();
 }
 

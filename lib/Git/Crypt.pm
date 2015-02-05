@@ -24,13 +24,34 @@ has cipher      => (
 
 sub encrypt {
     my $self = shift;
-    for ( @{ $self->files } ) {
-        next if $_->{is_encrypted};
-        my @lines_crypted =
-          map { encode_base64 $self->cipher->encrypt($_); } io($_->{file})->getlines;
-        io($_->{file})->print(@lines_crypted);
-        $_->{is_encrypted} = 1;
+    my $file = shift;
+    if ( $file ) {
+        my $file_found;
+        map { ( $_->{file} eq $file ) ? ( $file_found = $_ ) : () } @{ $self->files };
+        if ( ! $file_found ) {
+            print "File $file not found. Use 'gitcrypt status' to check files added.\n";
+            return;
+        }
+        if ( $file_found->{ is_encrypted } ) {
+            print "File $file is already encrypted.\n";
+            return;
+        }
+        $self->encrypt_file( $file_found );
+    } else {
+        for ( @{ $self->files } ) {
+            next if $_->{is_encrypted};
+            $self->encrypt_file( $_ );
+        }
     }
+}
+
+sub encrypt_file {
+    my $self = shift;
+    my $file = shift;
+    my @lines_crypted =
+      map { encode_base64( $self->cipher->encrypt($_), "" )."\n"; } io($file->{file})->getlines;
+    io($file->{file})->print(@lines_crypted);
+    $file->{is_encrypted} = 1;
 }
 
 sub decrypt {

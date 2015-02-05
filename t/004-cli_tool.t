@@ -107,11 +107,11 @@ encrypt_tests();
 
 {
     #check 3rd file encrypted contents
-    validate_expected_strings( 'ok', io('file3-tests')->slurp, [qw|
-        U2FsdGVkX1/IbgTiAAAAAFSmbJjcNIQPNXdGv5fgIUXj/s3Lu7A6iGqjMyBwc54X
-        U2FsdGVkX1/IbgTiAAAAAPXwTlqvbGrKGNqd5eVtThV3icUZwLwgRA==
-        U2FsdGVkX1/IbgTiAAAAAF42mY3K384WCD9i9S74GuU=
-    |], 'encrypt tests 3');
+    ok( io('file3-tests')->slurp eq <<CONTENT, 'encrypt tests 3');
+U2FsdGVkX1/IbgTiAAAAAFSmbJjcNIQPNXdGv5fgIUXj/s3Lu7A6iGqjMyBwc54X
+U2FsdGVkX1/IbgTiAAAAAPXwTlqvbGrKGNqd5eVtThV3icUZwLwgRA==
+U2FsdGVkX1/IbgTiAAAAAF42mY3K384WCD9i9S74GuU=
+CONTENT
 }
 
 {
@@ -121,7 +121,6 @@ encrypt_tests();
         'Decrypted',
     ];
     validate_expected_strings( 'ok', $cmd, $expected, 'decrypt tests 1' );
-
     #check decrypted file contents:
     validate_expected_strings( 'ok', io('file1-tests')->slurp, [
         'a couple of lines to test',
@@ -172,17 +171,18 @@ sub encrypt_tests {
         encrypt();
 
         #check encrypted file contents:
-        validate_expected_strings( 'ok', io('file1-tests')->slurp, [qw|
-            U2FsdGVkX1/IbgTiAAAAAFSmbJjcNIQPNXdGv5fgIUXj/s3Lu7A6iGqjMyBwc54X
-            U2FsdGVkX1/IbgTiAAAAAPXwTlqvbGrKGNqd5eVtThV3icUZwLwgRA==
-            U2FsdGVkX1/IbgTiAAAAAF42mY3K384WCD9i9S74GuU=
-        |], 'encrypt tests 1');
-        validate_expected_strings( 'ok', io('file2-tests')->slurp, [qw|
-            U2FsdGVkX1/IbgTiAAAAAIm66zCcFmSZzdi6DAFNJLc=
-            U2FsdGVkX1/IbgTiAAAAAEEtpmhdKZlGUv5X/l9WByQ=
-            U2FsdGVkX1/IbgTiAAAAABYKsXVjq0YHRQL8Yq/Wj5I=
-        |], 'encrypt tests 2');
-
+#warn io('file1-tests')->slurp;
+        ok( io('file1-tests')->slurp eq <<CONTENT, 'encrypt tests 1');
+U2FsdGVkX1/IbgTiAAAAAFSmbJjcNIQPNXdGv5fgIUXj/s3Lu7A6iGqjMyBwc54X
+U2FsdGVkX1/IbgTiAAAAAPXwTlqvbGrKGNqd5eVtThV3icUZwLwgRA==
+U2FsdGVkX1/IbgTiAAAAAF42mY3K384WCD9i9S74GuU=
+CONTENT
+#warn io('file2-tests')->slurp;
+        ok( io('file2-tests')->slurp eq <<CONTENT, 'encrypt tests 2');
+U2FsdGVkX1/IbgTiAAAAAIm66zCcFmSZzdi6DAFNJLc=
+U2FsdGVkX1/IbgTiAAAAAEEtpmhdKZlGUv5X/l9WByQ=
+U2FsdGVkX1/IbgTiAAAAABYKsXVjq0YHRQL8Yq/Wj5I=
+CONTENT
         #now there are 2 files encrypted, let me add a 3rd file which is not encrypted
 
     }
