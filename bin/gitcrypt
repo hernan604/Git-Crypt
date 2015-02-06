@@ -59,12 +59,12 @@ Avaliable commands:
 
 Configuration options:
     gitcrypt set cipher Blowfish
-    gitcrypt set key    some key
-    gitcrypt set salt   some salt
+    gitcrypt set key    "some key"
+    gitcrypt set salt   "some salt"
 
 Key and salt changes:
-    gitcrypt set key    some key
-    gitcrypt set salt   some salt
+    gitcrypt set key    "some key"
+    gitcrypt set salt   "some salt"
 
 Managing files:
     gitcrypt list
