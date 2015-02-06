@@ -208,9 +208,13 @@ sub list {
         return;
     }
     print "Files added:\n";
-    print "File         Status:\n";
+    print "Status: File:\n";
     for ( @{ $gitcrypt->files } ) {
-        print $_->{file} . "   " . $_->{is_encrypted} , "\n";
+        my $is_crypted = $_->{is_encrypted} 
+            ? " Yes    "
+            : " No     "
+            ;
+        print $is_crypted , $_->{file} , "\n";
     }
 }
 
