@@ -20,7 +20,9 @@ Git::Crypt - Encrypt/decrypt sensitive files saved on public repos
  gitcrypt add file1-xy lib/file2  #add files in gitcrypt
  gitcrypt del file1-ab lib/tests  #del files in gitcrypt
  gitcrypt encrypt                 #set files on encrypted state
+ gitcrypt encrypt file1 file2     #encrypt specific files
  gitcrypt decrypt                 #set files on decrypted state
+ gitcrypt decrypt file1 file2     #decrypt specific files
  gitcrypt precommit               #encrypt for precommit hook. Then decrypt
 
 =head2 git hooks integration
