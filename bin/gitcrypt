@@ -3,6 +3,8 @@ use Git::Crypt;
 use Crypt::CBC;
 use IO::All;
 use JSON::XS;
+use strict;
+use warnings;
 
 #Command line gitcrypt utility. This tool should be used inside gitdir containing .gitcrypt config file
 
@@ -68,28 +70,33 @@ sub new_gitcrypt {
         files       => $config->{ files },
         key         => $config->{ key },
         cipher_name => $config->{ cipher_name }||undef,
-        salt        => exists $config->{salt} ?pack( "H16", $config->{ salt } ) : undef,
+        salt        => (exists $config->{salt} and defined $config->{salt}) 
+            ? pack( "H16", $config->{ salt } ) 
+            : undef
+            ,
         key         => $config->{ key }||undef,
         cipher_name => $config->{ cipher_name }||undef,
         salt        => $config->{ salt }||undef,
     );
 }
-my $gitcrypt = new_gitcrypt( get_config() );
 
+my $gitcrypt = new_gitcrypt( get_config() );
 
 #get current action
 my $action = $ARGV[0]||undef;
-   if (!@ARGV)               { show_commands(); }
-elsif ( $action eq 'init' )    { init() } 
-elsif ( $action eq 'set' )     { set() } 
-elsif ( $action eq 'change' )     { change() } 
-elsif ( $action eq 'list' )    { list() }
-elsif ( $action eq 'add' )     { add() }
-elsif ( $action eq 'del' )     { del() } 
-elsif ( $action eq 'encrypt' ) { encrypt() } 
-elsif ( $action eq 'decrypt' ) { decrypt() } 
-elsif ( $action eq 'status' )  { status() }
-else  { print "Command not avaliable\n"; }
+       if (!@ARGV)                 { show_commands(); }
+    elsif ( $action eq 'init' )    { init() } 
+    elsif ( $action eq 'set' )     { set() } 
+    elsif ( $action eq 'change' )  { change() } 
+    elsif ( $action eq 'list' )    { list() }
+    elsif ( $action eq 'add' )     { add() }
+    elsif ( $action eq 'del' )     { del() } 
+    elsif ( $action eq 'encrypt' ) { encrypt() } 
+    elsif ( $action eq 'decrypt' ) { decrypt() } 
+    elsif ( $action eq 'status' )  { status() }
+    elsif ( $action eq 'help' )    { show_commands() }
+    elsif ( $action eq 'precommit' ) { precommit() } 
+    else  { print "Command not avaliable\n"; }
 
 sub show_commands {
     print <<COMMANDS;
@@ -119,12 +126,12 @@ COMMANDS
 }
 
 sub status {
-    print "cipher   ".$gitcrypt->cipher_name  if defined $gitcrypt->cipher_name;
-    print "\n";
-    print "key      ".$gitcrypt->key     if defined $gitcrypt->key;
-    print "\n";
-    print "salt     ".$gitcrypt->salt    if defined $gitcrypt->salt;
-    print "\n\n";
+    print "cipher   ".$gitcrypt->cipher_name,"\n"  
+        if defined $gitcrypt->cipher_name;
+    print "key      ".$gitcrypt->key,"\n"     
+        if defined $gitcrypt->key;
+    print "salt     ".$gitcrypt->salt,"\n"    
+        if defined $gitcrypt->salt;
     list();
 }
 
@@ -144,6 +151,28 @@ STEPS
     }
 }
 
+sub precommit {
+    return 0 if ! validate();
+    my @decrypted_files = @{ decrypted_files() };
+    $gitcrypt->encrypt;
+    print "Encrypted.\n";sleep 4;
+    for ( @{ $gitcrypt->files } ) {
+        if ( -e $_->{ file } ) {
+            my $file = $_->{ file };
+            `git add $file`;
+        } else {
+            print "File missing: ". $_->{ file }."\n";
+        }
+    }
+    for ( @decrypted_files ) {
+        if ( -e $_->{ file } ) {
+            $gitcrypt->decrypt( $_->{ file } );
+        }
+    }
+    save_config();
+    return 1;
+}
+
 sub validate {
     return 1
         if      defined $gitcrypt->cipher_name
@@ -159,7 +188,14 @@ HELP
 
 sub encrypt {
     return 0 if ! validate();
-    $gitcrypt->encrypt;
+    if ( $action eq 'encrypt' and scalar @ARGV > 1 ) { #contain 1 or more file paths
+        shift @ARGV; #remove action
+        for ( @ARGV ) {
+            $gitcrypt->encrypt( $_ );
+        }
+    } else {
+        $gitcrypt->encrypt;
+    }
     save_config();
     print "Encrypted.";
     return 1;
@@ -167,9 +203,16 @@ sub encrypt {
 
 sub decrypt {
     return 0 if ! validate();
-    $gitcrypt->decrypt;
+    if ( $action eq 'decrypt' and scalar @ARGV > 1 ) {
+        shift @ARGV;
+        for ( @ARGV ) {
+            $gitcrypt->decrypt( $_ );
+        }
+    } else {
+        $gitcrypt->decrypt;
+    }
     save_config();
-    print "Decrypted.";
+    print "Decrypted.\n";
     return 1;
 }
 
@@ -208,11 +251,11 @@ sub list {
         return;
     }
     print "Files added:\n";
-    print "Status: File:\n";
+    print "Status:   File:\n";
     for ( @{ $gitcrypt->files } ) {
         my $is_crypted = $_->{is_encrypted} 
-            ? " Yes    "
-            : " No     "
+            ? "encrypted  "
+            : "decrypted  "
             ;
         print $is_crypted , $_->{file} , "\n";
     }
@@ -270,13 +313,23 @@ sub reload_gitcrypt {
     $gitcrypt = new_gitcrypt( get_config() );
 }
 
+sub encrypted_files {
+    my @encrypted_files = map { $_->{ is_encrypted } ? $_ : () } @{ $gitcrypt->files }; 
+    return \@encrypted_files;
+}
+
+sub decrypted_files {
+    my @decrypted_files = map { !$_->{ is_encrypted } ? $_ : () } @{ $gitcrypt->files }; 
+    return \@decrypted_files;
+}
+
 sub change_salt {
     if ( ! $ARGV[2] ) {
         print "You did not pass a salt\n";
         return
     }
     my @files = @{$gitcrypt->files};
-    my @encrypted_files = map { $_->{ is_encrypted } ? $_ : () } @files; 
+    my @encrypted_files = @{ encrypted_files() }; 
     if ( decrypt() ) {
         print "Files decrypted. Will change salt.\n";
         save_salt( capture_cli_args( 'change salt' ) );
@@ -306,7 +359,7 @@ sub change_key {
         return
     }
     my @files = @{$gitcrypt->files};
-    my @encrypted_files = map { $_->{ is_encrypted } ? $_ : () } @files; 
+    my @encrypted_files = @{ encrypted_files() }; 
     if ( decrypt() ) {
         print "Files decrypted. Will change key.\n";
         save_key( capture_cli_args( 'change key' ) );
@@ -338,7 +391,6 @@ sub set_key {
     warn "Cannot set new key. Key has already been set. Use change key <newkey> to change."
         and return
             if defined $gitcrypt->key and $gitcrypt->key ne '';
-#   $gitcrypt->key(join " ", @ARGV);
     save_key( capture_cli_args( 'set key' ) );
 }
 
