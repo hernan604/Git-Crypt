@@ -139,7 +139,7 @@ our $VERSION = 0.01;
 
 =encoding utf8
 
-=head1 NAME
+=head1 Git::Crypt
 
 Git::Crypt - Encrypt/decrypt sensitive files saved on public repos
 
