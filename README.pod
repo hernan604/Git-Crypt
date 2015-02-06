@@ -65,6 +65,20 @@ Auto decrypt every file after commit executed. * If precommit hook uses gitcrypt
  exit 0;
  HOOK
 
+=head3 Using Git::Hooks
+
+ $ f=.git/hooks/githooks.pl ; cat <<HOOKS > $f; chmod +x $f
+ #!/usr/bin/env perl
+ use Git::Hooks;
+ PRE_COMMIT {
+     my ($git) = @_;
+     `gitcrypt precommit`;
+ };
+ run_hook($0, @ARGV);
+ HOOKS
+
+ $ cd .git/hooks; ln -s githooks.pl pre-commit
+
 =head2 Provide the cipher instance
 
   my $gitcrypt = Git::Crypt->new(
