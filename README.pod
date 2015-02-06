@@ -31,9 +31,9 @@ To integrate in git, use git hooks. Use pre-commit to encrypt and add the encryp
 
 =head3 Standard git hooks
 
-=head4 .git/hooks/pre-commit
+=head4 .git/hooks/pre-commit [with encrypt and decrypt]
 
-Auto encrypt every file and set them for commit
+Auto encrypt every file and set them for commit. The following script will be called upon 'git commit .' command.
 
  $ file=.git/hooks/pre-commit ; cat <<HOOK > $file && chmod +x $file
  #!/usr/bin/env perl
@@ -46,6 +46,8 @@ If used gitcrypt precommit the files will be encrypted during commit and decrypt
 This mode works good if only some files are encrypted and others are always decrypted. But all must be encrypted for commit.
 
 Another option, is to encrypt everything with "gitcrypt encrypt". And use a post-commit hook to decrypt everything [optional].
+
+=head4 .git/hooks/pre-commit [encrypt only]
 
  $ file=.git/hooks/pre-commit ; cat <<HOOK > $file && chmod +x $file
  #!/usr/bin/env perl
