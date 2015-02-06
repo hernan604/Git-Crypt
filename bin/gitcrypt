@@ -8,52 +8,6 @@ use warnings;
 
 #Command line gitcrypt utility. This tool should be used inside gitdir containing .gitcrypt config file
 
-#read .gitcrypt config file
-
-#usage:
-#   $ gitcrypt
-#   Avaliable commands:
-#   gitcrypt init
-#
-#   configuration options:
-#   gitcrypt set cipher Blowfish
-#   gitcrypt set key    some key
-#   gitcrypt set salt   some salt
-#
-#   managing files
-#   gitcrypt list
-#   gitcrypt add some/file
-#   gitcrypt del some/file
-#
-#   gitcrypt encrypt
-#
-#   gitcrypt decrypt
-#
-#   $ gitcrypt status
-#   cipher  Blowfish
-#   key     some key
-#   salt    some salt
-#   Current files status: encrypted
-#
-#
-#   $ gitcrypt list
-#   list : dir/file1
-#          dir/file2
-#          file3
-#          dir/sub/file4
-#
-#   $ gitcrypt add some/file
-#   add  : some/file
-#
-#   $ gitcrypt del some/file
-#   del  : some/file
-#
-#   $ gitcrypt encrypt
-#   files encrypted
-#
-#   $ gitcrypt decrypt
-#   files decrypted
-
 my $config_file = $ENV{GITCRYPT_CONFIG_FILE} || '.gitcrypt';
 
 #load config or start with new one
@@ -119,9 +73,14 @@ Managing files:
 
 Encrypt files:
     gitcrypt encrypt
+    gitcrypt encrypt file1 file2
 
 Decrypt files:
     gitcrypt decrypt
+    gitcrypt decrypt file1 file2
+
+Precommit:
+    gitcrypt precommit
 COMMANDS
 }
 
