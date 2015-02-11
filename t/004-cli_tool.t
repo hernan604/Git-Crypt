@@ -8,7 +8,7 @@ $ENV{GITCRYPT_CONFIG_FILE} = $gitcrypt_config_file;
 
 {
     #init
-    my $cmd = `./bin/gitcrypt init`;
+    my $cmd = `$^X ./bin/gitcrypt init`;
     my $expected = [
         'Initializing',
         'gitcrypt set cipher Blowfish',
@@ -20,7 +20,7 @@ $ENV{GITCRYPT_CONFIG_FILE} = $gitcrypt_config_file;
 
 {
     #set cipher
-    my $cmd = `./bin/gitcrypt set cipher Blowfish`;
+    my $cmd = `$^X ./bin/gitcrypt set cipher Blowfish`;
     my $expected = [
         'Set cipher to: Blowfish',
     ];
@@ -29,7 +29,7 @@ $ENV{GITCRYPT_CONFIG_FILE} = $gitcrypt_config_file;
 
 {
     #set key
-    my $cmd = `./bin/gitcrypt set key    some key`;
+    my $cmd = `$^X ./bin/gitcrypt set key    some key`;
     my $expected = [
         'Set key to: some key',
     ];
@@ -38,7 +38,7 @@ $ENV{GITCRYPT_CONFIG_FILE} = $gitcrypt_config_file;
 
 {
     #set salt
-    my $cmd = `./bin/gitcrypt set salt   some key`;
+    my $cmd = `$^X ./bin/gitcrypt set salt   some key`;
     my $expected = [
         'Set salt to: some key',
     ];
@@ -47,7 +47,7 @@ $ENV{GITCRYPT_CONFIG_FILE} = $gitcrypt_config_file;
 
 {
     #list
-    my $cmd = `./bin/gitcrypt list`;
+    my $cmd = `$^X ./bin/gitcrypt list`;
     my $expected = [
         'No files added',
     ];
@@ -71,7 +71,7 @@ LINES
     );
 
     #add
-    my $cmd = `./bin/gitcrypt add file1-tests file2-tests`;
+    my $cmd = `$^X ./bin/gitcrypt add file1-tests file2-tests`;
     my $expected = [
         'Adding files:',
         'file1-tests',
@@ -92,7 +92,7 @@ bla bla bla
 LINES
 
     encrypt();
-    my $cmd = `./bin/gitcrypt add file3-tests`;
+    my $cmd = `$^X ./bin/gitcrypt add file3-tests`;
     my $expected = [
         'Adding files:',
         'file3-tests',
@@ -116,7 +116,7 @@ CONTENT
 
 {
     #decrypt
-    my $cmd = `./bin/gitcrypt decrypt`;
+    my $cmd = `$^X ./bin/gitcrypt decrypt`;
     my $expected = [
         'Decrypted',
     ];
@@ -138,7 +138,7 @@ CONTENT
 
 {
     #del
-    my $cmd = `./bin/gitcrypt del file1-tests file2-tests`;
+    my $cmd = `$^X ./bin/gitcrypt del file1-tests file2-tests`;
     my $expected = [
         'Deleting files:',
         'file1-tests',
@@ -189,7 +189,7 @@ CONTENT
 }
 
 sub encrypt {
-    my $cmd = `./bin/gitcrypt encrypt`;
+    my $cmd = `$^X ./bin/gitcrypt encrypt`;
     my $expected = [
         'Encrypted',
     ];

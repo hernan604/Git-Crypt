@@ -135,7 +135,7 @@ sub config {
     };
 }
 
-our $VERSION = 0.01;
+our $VERSION = 0.03;
 
 =encoding utf8
 

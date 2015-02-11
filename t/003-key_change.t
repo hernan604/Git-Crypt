@@ -13,7 +13,7 @@ my $newsalt = 'OKODEOFJOEEEEEEEEEEEEEEEEEEEEEFFFFFFBBBBBBBCCCCCDDDDDEEEEEEERRRRR
 
 {
     #init
-    my $cmd = `./bin/gitcrypt init`;
+    my $cmd = `$^X ./bin/gitcrypt init`;
     my $expected = [
         'Initializing',
         'gitcrypt set cipher Blowfish',
@@ -25,7 +25,7 @@ my $newsalt = 'OKODEOFJOEEEEEEEEEEEEEEEEEEEEEFFFFFFBBBBBBBCCCCCDDDDDEEEEEEERRRRR
 
 {
     #set cipher
-    my $cmd = `./bin/gitcrypt set cipher Blowfish`;
+    my $cmd = `$^X ./bin/gitcrypt set cipher Blowfish`;
     my $expected = [
         'Set cipher to: Blowfish',
     ];
@@ -34,7 +34,7 @@ my $newsalt = 'OKODEOFJOEEEEEEEEEEEEEEEEEEEEEFFFFFFBBBBBBBCCCCCDDDDDEEEEEEERRRRR
 
 {
     #set key
-    my $cmd = `./bin/gitcrypt set key    "$key"`;
+    my $cmd = `$^X ./bin/gitcrypt set key    "$key"`;
     my $expected = [
         'Set key to: '.$key,
     ];
@@ -43,7 +43,7 @@ my $newsalt = 'OKODEOFJOEEEEEEEEEEEEEEEEEEEEEFFFFFFBBBBBBBCCCCCDDDDDEEEEEEERRRRR
 
 {
     #set salt
-    my $cmd = `./bin/gitcrypt set salt   "$salt"`;
+    my $cmd = `$^X ./bin/gitcrypt set salt   "$salt"`;
     my $expected = [
         'Set salt to: '.$salt,
     ];
@@ -52,7 +52,7 @@ my $newsalt = 'OKODEOFJOEEEEEEEEEEEEEEEEEEEEEFFFFFFBBBBBBBCCCCCDDDDDEEEEEEERRRRR
 
 {
     #list
-    my $cmd = `./bin/gitcrypt list`;
+    my $cmd = `$^X ./bin/gitcrypt list`;
     my $expected = [
         'No files added',
     ];
@@ -76,7 +76,7 @@ LINES
     );
 
     #add
-    my $cmd = `./bin/gitcrypt add file1-tests file2-tests`;
+    my $cmd = `$^X ./bin/gitcrypt add file1-tests file2-tests`;
     my $expected = [
         'Adding files:',
         'file1-tests',
@@ -97,7 +97,7 @@ bla bla bla
 LINES
 
     encrypt();
-    my $cmd = `./bin/gitcrypt add file3-tests`;
+    my $cmd = `$^X ./bin/gitcrypt add file3-tests`;
     my $expected = [
         'Adding files:',
         'file3-tests',
@@ -121,14 +121,14 @@ CONTENT
 
 {
     #change key
-    my $cmd = `./bin/gitcrypt status`;
+    my $cmd = `$^X ./bin/gitcrypt status`;
     #change the password
-    my $cmd = `./bin/gitcrypt change key $newkey`;
+    my $cmd = `$^X ./bin/gitcrypt change key $newkey`;
     my $expected = [
         'Files decrypted. Will change key.',
     ];
     validate_expected_strings( 'ok', $cmd, $expected, 'encryption key changed' );
-    my $cmd = `./bin/gitcrypt status`;
+    my $cmd = `$^X ./bin/gitcrypt status`;
 }
 
 encrypt_tests_new_key();
@@ -137,14 +137,14 @@ test_original_file_contents();
 
 {
     #change salt
-    my $cmd = `./bin/gitcrypt status`;
+    my $cmd = `$^X ./bin/gitcrypt status`;
     #change the password
-    my $cmd = `./bin/gitcrypt change salt $newsalt`;
+    my $cmd = `$^X ./bin/gitcrypt change salt $newsalt`;
     my $expected = [
         'Files decrypted. Will change salt.',
     ];
     validate_expected_strings( 'ok', $cmd, $expected, 'encryption salt changed' );
-    my $cmd = `./bin/gitcrypt status`;
+    my $cmd = `$^X ./bin/gitcrypt status`;
 }
 
 encrypt_tests_new_salt();
@@ -153,7 +153,7 @@ test_original_file_contents();
 
 {
     #del
-    my $cmd = `./bin/gitcrypt del file1-tests file2-tests`;
+    my $cmd = `$^X ./bin/gitcrypt del file1-tests file2-tests`;
     my $expected = [
         'Deleting files:',
         'file1-tests',
@@ -214,7 +214,7 @@ CONTENT
 
 sub test_original_file_contents {
     #decrypt
-    my $cmd = `./bin/gitcrypt decrypt`;
+    my $cmd = `$^X ./bin/gitcrypt decrypt`;
     my $expected = [
         'Decrypted',
     ];
@@ -254,7 +254,7 @@ CONTENT
 }
 
 sub encrypt {
-    my $cmd = `./bin/gitcrypt encrypt`;
+    my $cmd = `$^X ./bin/gitcrypt encrypt`;
     my $expected = [
         'Encrypted',
     ];
