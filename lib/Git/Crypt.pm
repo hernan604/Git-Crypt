@@ -5,6 +5,7 @@ use Moo;
 use IO::All;
 use Crypt::CBC;
 use MIME::Base64;
+use Crypt::Blowfish;
 
 has files       => ( is => 'rw', default => sub { [] } );
 has salt        => ( is => 'rw', default => sub { 0 } );
@@ -135,7 +136,7 @@ sub config {
     };
 }
 
-our $VERSION = 0.03;
+our $VERSION = 0.05;
 
 =encoding utf8
 
@@ -320,7 +321,10 @@ Since gitcrypt encrypts line by line, the diff can show wether its a big/small c
  CPAN ID: HERNAN
  perldelux
  hernanlopes@gmail.com
- http://www.perldelux.com
+
+=head1 GITHUB
+
+ https://github.com/hernan604/Git-Crypt
 
 =head1 COPYRIGHT
 

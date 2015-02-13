@@ -197,7 +197,10 @@ Since gitcrypt encrypts line by line, the diff can show wether its a big/small c
  CPAN ID: HERNAN
  perldelux
  hernanlopes@gmail.com
- http://www.perldelux.com
+
+=head1 GITHUB
+
+ https://github.com/hernan604/Git-Crypt
 
 =head1 COPYRIGHT
 

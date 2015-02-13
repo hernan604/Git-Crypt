@@ -121,14 +121,14 @@ CONTENT
 
 {
     #change key
-    my $cmd = `$^X ./bin/gitcrypt status`;
+#   my $cmd = `$^X ./bin/gitcrypt status`;
     #change the password
     my $cmd = `$^X ./bin/gitcrypt change key $newkey`;
     my $expected = [
         'Files decrypted. Will change key.',
     ];
     validate_expected_strings( 'ok', $cmd, $expected, 'encryption key changed' );
-    my $cmd = `$^X ./bin/gitcrypt status`;
+#   $cmd = `$^X ./bin/gitcrypt status`;
 }
 
 encrypt_tests_new_key();
@@ -137,14 +137,14 @@ test_original_file_contents();
 
 {
     #change salt
-    my $cmd = `$^X ./bin/gitcrypt status`;
+#   my $cmd = `$^X ./bin/gitcrypt status`;
     #change the password
     my $cmd = `$^X ./bin/gitcrypt change salt $newsalt`;
     my $expected = [
         'Files decrypted. Will change salt.',
     ];
     validate_expected_strings( 'ok', $cmd, $expected, 'encryption salt changed' );
-    my $cmd = `$^X ./bin/gitcrypt status`;
+#   my $cmd = `$^X ./bin/gitcrypt status`;
 }
 
 encrypt_tests_new_salt();

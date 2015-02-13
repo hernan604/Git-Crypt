@@ -5,6 +5,17 @@ use IO::All;
 use JSON::XS;
 use strict;
 use warnings;
+use Proc::ProcessTable;
+
+sub pid_args {
+    my $t = new Proc::ProcessTable;
+    foreach my $p ( @{$t->table} ) {
+        return $p->cmndline
+            if ( $p->pid == $$ )
+            ;
+    }
+}
+
 
 #Command line gitcrypt utility. This tool should be used inside gitdir containing .gitcrypt config file
 
@@ -244,7 +255,7 @@ sub change {
 
 sub capture_cli_args {
     my $discard_string = shift;
-    my $cliargs = `ps -o args $$` ;
+    my $cliargs = pid_args() ;
     $cliargs =~ s|^COMMAND\n||gm;
     $cliargs =~ s|^.+$discard_string( +)||gm;
     $cliargs =~ s|\n$||;
